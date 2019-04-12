@@ -22,14 +22,14 @@ class Sbot():
 
         if (movimento ==3):
 
-            if (cobray[0]+20 > largura):
+            if (cobrax[0]+20 > largura):
                 return True
 
             cabeca= str(cobrax[0]+20)+ str(cobray[0])
 
         if (movimento ==6):
 
-            if (cobray[0]-20 < 0):
+            if (cobrax[0]-20 < 0):
                 return True
 
             cabeca= str(cobrax[0]-20)+ str(cobray[0])

@@ -13,35 +13,23 @@ def morde(snakeposx, snakeposy):
 	
 	for x in range(0, y):
 		if (str(cobrax[x]) + str(cobray[x]) == str(cabeca)):
-			print (cabeca)
-			print (str(x)+str(y))
 			return True
-	
 	return False
-	
-
-def collide(x1, x2, y1, y2, w1, w2, h1, h2):
-
-	if x1+w1>x2 and x1<x2+w2 and y1+h1>y2 and y1<y2+h2:
-		return True
-	else:
-		return False
 	
 while True:
 	restart = False
 	
 	controle = Sbot()
-	altura = largura = 600
-
-
+	largura = 600
+	
 	snakeposx = [280, 280, 280, 280, 280]
 	snakeposy = [280, 260, 240, 220, 200]
 	dirs = lastdirs = 1
 	score = 0
 	
-	applepos = (random.randrange(0, altura,20), random.randrange(0, largura,20))
+	applepos = (random.randrange(0, largura,20), random.randrange(0, largura,20))
 	pygame.init()
-	s=pygame.display.set_mode((altura, largura))
+	s=pygame.display.set_mode((largura, largura))
 	pygame.display.set_caption('Snake')
 	appleimage = pygame.Surface((19, 19))
 	appleimage.fill((0, 255, 0))
@@ -52,21 +40,21 @@ while True:
 	
 	clock = pygame.time.Clock()
 	
-	while restart !=True:
+	while (restart !=True):
 		restart = False
 		clock.tick(10)
 		i = len(snakeposx)-1
 
 		for e in pygame.event.get():
 			if e.type == QUIT:
-				ssnakeposy.exit(0)
+				sys.exit(0)
 		
 
-		if collide(snakeposx[0], applepos[0], snakeposy[0], applepos[1], 20, 20, 20, 20):
+		if (str(snakeposx[0]) + str(snakeposy[0]) == str(applepos[0]) + str(applepos[1]) ) :
 			score+=1
 			snakeposx.append(1)
 			snakeposy.append(1)
-			applepos=(random.randrange(0,altura,20), random.randrange(0,largura,20))
+			applepos=(random.randrange(0,largura,20), random.randrange(0,largura,20))
 			
 		
 		#print(applepos)
@@ -75,7 +63,7 @@ while True:
 			print("se mordeu")
 			restart =True
 
-		if snakeposx[0] < 0 or snakeposx[0] > largura or snakeposy[0] < 0 or snakeposy[0] > altura:
+		if snakeposx[0] < 0 or snakeposx[0] > largura or snakeposy[0] < 0 or snakeposy[0] > largura:
 			print("Parede")
 			restart = True
 
@@ -86,8 +74,6 @@ while True:
 			snakeposy[i] = snakeposy[i-1]
 			i -= 1
 		
-		#print (snakeposx)
-		#print (snakeposy)
 
 		dirs = controle.controle(applepos, snakeposx, snakeposy, lastdirs)
 

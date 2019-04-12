@@ -6,76 +6,72 @@ class Sbot():
         cobray = list(snakeposy)
         cobrax = list(snakeposx)
 
-        if (movimento ==1):
+        cabeca= str(cobrax[0])+ str(cobray[0])
 
-            if (cobray[0]+20 > largura):
-                return True
+        if (movimento ==1 and cobray[0]+20 <= largura):
+                cabeca= str(cobrax[0])+ str(cobray[0]+20)
+            #	print("BAIXO")
 
-            cabeca= str(cobrax[0])+ str(cobray[0]+20)
 
-        if (movimento ==2):
+        if (movimento ==2 and cobray[0]-20 >=0):
+                cabeca= str(cobrax[0])+ str(cobray[0]-20)
+            #	print("cima")
 
-            if (cobray[0]-20 <0):
-                return True
 
-            cabeca= str(cobrax[0])+ str(cobray[0]-20)
+        if (movimento ==3 and cobrax[0]+20 <= largura):
+                cabeca= str(cobrax[0]+20)+ str(cobray[0])
+            #	print("direita")
 
-        if (movimento ==3):
 
-            if (cobrax[0]+20 > largura):
-                return True
+        if (movimento ==6 and cobrax[0]-20 >= 0):
+                cabeca= str(cobrax[0]-20)+ str(cobray[0])
+            #	print("esquerda")
 
-            cabeca= str(cobrax[0]+20)+ str(cobray[0])
 
-        if (movimento ==6):
-
-            if (cobrax[0]-20 < 0):
-                return True
-
-            cabeca= str(cobrax[0]-20)+ str(cobray[0])
-
-        cobrax.pop(0)
-        cobray.pop(0)
         y= len(cobrax)
 
         for x in range(0, y):
             if (str(cobrax[x]) + str(cobray[x]) == str(cabeca) ):
                 return True
+        
+#        print("sem escolha")
         return False
-
-
 
 
     def controle(self, applepos, snakeposx, snakeposy, lastdiers):
 
-        
-        if (applepos[1] > snakeposy[0] and lastdiers != 2 and self.morde(snakeposx, snakeposy, 1) ==False):
-        #    print("baixo")
+        if   (applepos[1] > snakeposy[0] and lastdiers != 2 and self.morde(snakeposx, snakeposy, 1) ==False):
             return 1
-        elif (applepos[0] > snakeposx[0]and lastdiers != 6 and self.morde(snakeposx, snakeposy, 3) ==False):
-        #    print("direita")
-            return 3
-        elif (applepos[0] < snakeposx[0]and lastdiers != 3 and self.morde(snakeposx, snakeposy, 6) ==False):
-        #    print("esquerda")
-            return 6
-        elif (applepos[1] < snakeposy[0]and lastdiers != 1 and self.morde(snakeposx, snakeposy, 2) ==False ):
-        #    print("cima")
-            return 2
-
-        elif (self.morde(snakeposx, snakeposy, 1) == False):
         #    print("baixo")
-            return 1
-
-        elif (self.morde(snakeposx, snakeposy, 2) == False):
-        #    print("cima")
+        elif (applepos[1] < snakeposy[0] and lastdiers != 1 and self.morde(snakeposx, snakeposy, 2) ==False):
             return 2
-        
-        elif (self.morde(snakeposx, snakeposy, 3) == False):
-        #    print("direita")
+        #    print("cima")
+        elif (applepos[0] > snakeposx[0] and lastdiers != 6 and self.morde(snakeposx, snakeposy, 3) ==False):
             return 3
-
-        elif (self.morde(snakeposx, snakeposy, 6) == False):
-        #    print("esquerda")
+        #    print("direita")
+        elif (applepos[0] < snakeposx[0] and lastdiers != 3 and self.morde(snakeposx, snakeposy, 6) ==False):
             return 6
+        #    print("esquerda")
 
+        ################# ##########
+        #impossivel ir até a maça  #
+        ################# ##########
+
+        elif ( lastdiers != 2 and self.morde(snakeposx, snakeposy, 1) == False):
+            return 1
+        #    print("baixo")
+
+        elif ( lastdiers != 1 and self.morde(snakeposx, snakeposy, 2) == False):
+            return 2
+        #    print("cima")
+        
+        elif ( lastdiers != 6 and self.morde(snakeposx, snakeposy, 3) == False):
+            return 3
+        #    print("direita")
+
+        elif (lastdiers != 3 and self.morde(snakeposx, snakeposy, 6) == False):
+            return 6
+        #    print("esquerda")
+        
+        #print("sem escolha")
         return (lastdiers)

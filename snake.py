@@ -1,100 +1,101 @@
-import pygame, random, sys
+import pygame
+import random
+import sys
 from pygame.locals import *
-from Sbot import Sbot
 
-def morde(snakepos):
-	cobra = list(snakepos)
-	cabeca= str(cobra[0][0])+ str(cobra[1][0])
-	
-	for x in range(1, len(cobra)-1):
-		if (str(cobra[0][x]) + str(cobra[1][x]) == str(cabeca)):
-			return True
-	return False
-	
+from SnakeBot import SnakeBot
+
+
+def bite(snake_position):
+    snake = list(snake_position)
+    head = str(snake[0][0]) + str(snake[1][0])
+
+    for x in range(1, len(snake) - 1):
+        if str(snake[0][x]) + str(snake[1][x]) == str(head):
+            return True
+    return False
+
+
 while True:
-	restart = False
-	
-	controle = Sbot()
-	largura = 600
-	
-	
-	snakepos = [[280, 280, 280 ], [280, 260, 240]]
-	
-	dirs = lastdirs = 1
-	score = 0
-	
-	applepos = [(random.randrange(0, largura,20)), (random.randrange(0, largura,20))]
-	pygame.init()
-	s=pygame.display.set_mode((largura, largura))
-	pygame.display.set_caption('Snake')
-	appleimage = pygame.Surface((19, 19))
-	appleimage.fill((0, 255, 0))
-	img = pygame.Surface((19, 19))
-	img.fill((255, 0, 0))
+    restart = False
 
-	f = pygame.font.SysFont('Arial', 20)
-	
-	clock = pygame.time.Clock()
-	
-	while (restart !=True):
-		#print("loop")
-		restart = False
-		clock.tick(10)
-		i = len(snakepos)-1
+    control = SnakeBot()
+    width = 600
 
-		for e in pygame.event.get():
-			if e.type == QUIT:
-				sys.exit(0)
-		
+    snake_position = [[280, 280, 280], [280, 260, 240]]
 
+    dirs = last_direction = 1
+    score = 0
 
-		if (str(applepos[0])+ str(applepos[1]) == str(snakepos[0][0]) + str(snakepos[1][0])):
-			score+=1
-			snakepos.append(0)
-			snakepos[0].append(0)
-			snakepos[1].append(0)
-			applepos = [(random.randrange(0, largura,20)), (random.randrange(0, largura,20))]
-			#print(applepos)
-		
-		if morde(snakepos):
-			print("se mordeu")
-			restart =True
+    apple_position = [(random.randrange(0, width, 20)), (random.randrange(0, width, 20))]
+    pygame.init()
+    s = pygame.display.set_mode((width, width))
+    pygame.display.set_caption('Snake')
+    apple_image = pygame.Surface((19, 19))
+    apple_image.fill((0, 255, 0))
+    img = pygame.Surface((19, 19))
+    img.fill((255, 0, 0))
 
-		if snakepos[0][0] < 0 or snakepos[0][0] > largura or snakepos[1][0] < 0 or snakepos[1][0] > largura:
-			print("Parede")
-			restart = True
+    f = pygame.font.SysFont('Arial', 20)
 
-		i = len(snakepos)
-		while i >= 1:
-			snakepos[0][i] = snakepos[0][i-1]
-			snakepos[1][i] = snakepos[1][i-1]
-			i -= 1
+    clock = pygame.time.Clock()
 
-		dirs = controle.controle(applepos, snakepos, lastdirs)
+    while not restart:
+        # print("loop")
+        restart = False
+        clock.tick(10)
+        i = len(snake_position) - 1
 
-		lastdirs = dirs
-		
-		if lastdirs==1:
-			snakepos[1][0] += 20
-		#	print("BAIXO")
-		elif lastdirs==2:
-			snakepos[1][0] -= 20
-		#	print("CIMA")
-		elif lastdirs==3:
-			snakepos[0][0] += 20
-		#	print("DIREITA")
-		elif lastdirs==6:
-			snakepos[0][0] -= 20
-		#	print("ESQUERDA")	
-		
-		s.fill((0, 0, 0))	
-				
+        for e in pygame.event.get():
+            if e.type == QUIT:
+                sys.exit(0)
 
-		for i in range(0, len(snakepos[0])):
-			s.blit(img, (snakepos[0][i], snakepos[1][i]))
+        if str(apple_position[0]) + str(apple_position[1]) == str(snake_position[0][0]) + str(snake_position[1][0]):
+            score += 1
+            snake_position.append(0)
+            snake_position[0].append(0)
+            snake_position[1].append(0)
+            apple_position = [(random.randrange(0, width, 20)), (random.randrange(0, width, 20))]
+        # print(apple_position)
 
+        if bite(snake_position):
+            print("bitten itself")
+            restart = True
 
-		s.blit(appleimage,(applepos[0],applepos[1]))
-		t=f.render(str(score), True, (0, 255, 0))
-		s.blit(t, (20, 20))
-		pygame.display.update()
+        if snake_position[0][0] < 0 or snake_position[0][0] > width or snake_position[1][0] < 0 or snake_position[1][
+            0] > width:
+            print("wall")
+            restart = True
+
+        i = len(snake_position)
+        while i >= 1:
+            snake_position[0][i] = snake_position[0][i - 1]
+            snake_position[1][i] = snake_position[1][i - 1]
+            i -= 1
+
+        dirs = control.control(apple_position, snake_position, last_direction)
+
+        last_direction = dirs
+
+        if last_direction == 1:
+            snake_position[1][0] += 20
+        #	print("down")
+        elif last_direction == 2:
+            snake_position[1][0] -= 20
+        #	print("up")
+        elif last_direction == 3:
+            snake_position[0][0] += 20
+        #	print("right")
+        elif last_direction == 6:
+            snake_position[0][0] -= 20
+        #	print("left")
+
+        s.fill((0, 0, 0))
+
+        for i in range(0, len(snake_position[0])):
+            s.blit(img, (snake_position[0][i], snake_position[1][i]))
+
+        s.blit(apple_image, (apple_position[0], apple_position[1]))
+        t = f.render(str(score), True, (0, 255, 0))
+        s.blit(t, (20, 20))
+        pygame.display.update()

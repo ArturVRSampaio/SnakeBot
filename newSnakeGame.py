@@ -39,8 +39,6 @@ class Snake:
             self.eaten = False
         else:
             self.segments.pop()
-        print(self.segments)
-
 
 
 class SnakeBot:
@@ -156,6 +154,9 @@ class Game:
 
     def start_game(self):
         while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    game_over()
 
             self.snake.direction = self.snakeBot.decide(self.snake, self.food)
 
@@ -174,7 +175,7 @@ class Game:
             draw_food(self.food, self.screen)
             pygame.display.flip()
 
-            self.clock.tick(5)  # Control the frame rate
+            self.clock.tick(20)  # Control the frame rate
 
 
 game = Game()

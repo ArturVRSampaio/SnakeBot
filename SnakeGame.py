@@ -5,6 +5,7 @@ import pygame
 from Constants import *
 from Snake import Snake
 from SnakeBot import SnakeBot
+
 from Utils import new_food_position, snake_ate_the_food, is_game_over
 
 
@@ -62,7 +63,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.game_over()
 
-            self.snake.direction = self.snakeBot.smart_decide(self.snake, self.food)
+            self.snake.direction = self.snakeBot.decide_with_distance(self.snake, self.food)
 
             self.snake.move()
 

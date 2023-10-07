@@ -3,7 +3,6 @@ import math
 from collections import deque
 import copy
 
-
 class SnakeBot:
 
     def decide_bfs(self, snake, food):
@@ -27,7 +26,7 @@ class SnakeBot:
 
         return snake.direction
 
-    def smart_decide(self, snake, food):
+    def decide_with_distance(self, snake, food):
         paths = []
         for direction in DIRECTIONS:
             new_snake = copy.deepcopy(snake)
@@ -43,7 +42,7 @@ class SnakeBot:
         paths = sorted(paths, key=lambda x: x[1])
         return paths[0][0]
 
-    def simple_decide(self, snake, food):
+    def decide_by_side(self, snake, food):
         head_x, head_y = snake.head()
         food_x, food_y = food
 

@@ -58,16 +58,21 @@ class Game:
         self.draw_food(self.food, self.screen)
         pygame.display.flip()
 
+        directions =[]
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.game_over()
 
-            self.snake.direction = self.snakeBot.decide_with_distance(self.snake, self.food)
+            if not directions:
+                directions = self.snakeBot.decide_dfs(self.snake, self.food)
+
+            self.snake.direction = directions.pop()
 
             self.snake.move()
 
             if snake_ate_the_food(self.snake, self.food):
+                directions = self.snakeBot.decide_dfs(self.snake, self.food)
                 self.snake.add_segment()
                 self.score += 1
                 self.food = new_food_position()
@@ -80,5 +85,5 @@ class Game:
             self.draw_food(self.food, self.screen)
             pygame.display.flip()
 
-            self.clock.tick(10)  # Control the frame rate
+            self.clock.tick(50)  # Control the frame rate
 

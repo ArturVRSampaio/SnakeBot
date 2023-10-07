@@ -1,28 +1,55 @@
+from Structures.ExplorationNode import ExplorationNode
+from Structures.UniqueStack import UniqueStack
 from Utils import *
 import math
 from collections import deque
 import copy
 
+
 class SnakeBot:
 
+    def decide_dfs(self, snake, food):
+        stack = UniqueStack()
+        stack.push(ExplorationNode(snake))
+
+        while stack.has_not_discarted_items():
+            node = stack.get_last_not_discarded_item()
+
+            if is_game_over(node.snake) or node.is_explored():
+                node.discard()
+            elif snake_ate_the_food(node.snake, food):
+                node.explore()
+                path = []
+
+                while node.parent:
+                    path.append(node.snake.direction)
+                    node = node.parent
+
+                print(path)
+                return path
+            else:
+                node.explore()
+                new_nodes = []
+                for direction in DIRECTIONS:
+                    new_snake = copy.deepcopy(node.snake)
+                    new_snake.direction = direction
+                    new_snake.move()
+
+                    new_node = ExplorationNode(new_snake, node)
+                    new_node = stack.push(new_node)
+                    new_nodes.append(new_node)
+                has_only_discarted_childs = True
+                for node in new_nodes:
+                    if not node.is_discarded():
+                        has_only_discarted_childs = False
+
+                if has_only_discarted_childs:
+                    node.discard()
+
+        return snake.direction
+
     def decide_bfs(self, snake, food):
-
-        queue = deque([(snake, [])])
-
-        while queue:
-            current_snake, path = queue.popleft()
-
-            if snake_ate_the_food(current_snake, food):
-                return path[0] if path else current_snake.direction
-
-            for direction in DIRECTIONS:
-                new_snake = copy.deepcopy(current_snake)
-                new_snake.direction = direction
-                new_snake.move()
-
-                if not is_game_over(new_snake):
-                    new_path = path + [direction]
-                    queue.append((new_snake, new_path))
+        queue = []
 
         return snake.direction
 

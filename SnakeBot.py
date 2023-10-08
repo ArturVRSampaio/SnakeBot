@@ -25,7 +25,8 @@ class SnakeBot:
                     path.append(node.snake.direction)
                     node = node.parent
 
-                print(path)
+                if not path:
+                    path.append(snake.direction)
                 return path
             else:
                 node.explore()

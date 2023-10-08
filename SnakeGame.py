@@ -85,5 +85,5 @@ class Game:
             self.draw_food(self.food, self.screen)
             pygame.display.flip()
 
-            self.clock.tick(50)  # Control the frame rate
+            self.clock.tick(60)  # Control the frame rate
 

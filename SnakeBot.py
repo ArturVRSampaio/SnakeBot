@@ -2,22 +2,20 @@ from Structures.ExplorationNode import ExplorationNode
 from Structures.UniqueStack import UniqueStack
 from Utils import *
 import math
-from collections import deque
 import copy
 
 
 class SnakeBot:
 
     def decide_dfs(self, snake, food):
-        stack = UniqueStack()
-        stack.push(ExplorationNode(snake))
+        stack = UniqueStack(ExplorationNode(snake))
 
         while stack.has_not_discarted_items():
             node = stack.get_last_not_discarded_item()
 
-            if is_game_over(node.snake) or node.is_explored():
+            if is_game_over(node.snake):
                 node.discard()
-            elif snake_ate_the_food(node.snake, food):
+            elif will_snake_eat_the_food(node.snake, food):
                 node.explore()
                 path = []
 
@@ -25,33 +23,30 @@ class SnakeBot:
                     path.append(node.snake.direction)
                     node = node.parent
 
-                if not path:
-                    path.append(snake.direction)
                 return path
             else:
                 node.explore()
-                new_nodes = []
+                discard_count = 0
+
+                # if random.randrange(0, 10) > 6:
+                #     random.shuffle(DIRECTIONS)
+
                 for direction in DIRECTIONS:
                     new_snake = copy.deepcopy(node.snake)
                     new_snake.direction = direction
                     new_snake.move()
 
                     new_node = ExplorationNode(new_snake, node)
-                    new_node = stack.push(new_node)
-                    new_nodes.append(new_node)
-                has_only_discarted_childs = True
-                for node in new_nodes:
-                    if not node.is_discarded():
-                        has_only_discarted_childs = False
-
-                if has_only_discarted_childs:
+                    stack.push(new_node)
+                    if new_node.is_discarded():
+                        discard_count += 1
+                if discard_count == 4:
                     node.discard()
 
-        return snake.direction
+        return [snake.direction]
 
     def decide_bfs(self, snake, food):
         queue = []
-
         return snake.direction
 
     def decide_with_distance(self, snake, food):

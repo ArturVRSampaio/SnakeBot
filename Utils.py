@@ -14,7 +14,7 @@ def is_game_over(snake):
     return False
 
 
-def snake_ate_the_food(snake, food):
+def will_snake_eat_the_food(snake, food):
     head_x, head_y = snake.head()
     food_x, food_y = food
     return head_x == food_x and head_y == food_y

@@ -1,5 +1,5 @@
 class ExplorationNode:
-    def __init__(self, snake, parent = None):
+    def __init__(self, snake, parent=None):
         self.parent = parent
         self.snake = snake
         self.status = "unexplored"  # Default status is unexplored

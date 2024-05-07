@@ -2,22 +2,21 @@ from Structures.ExplorationNode import ExplorationNode
 
 
 class UniqueStack:
-    def __init__(self):
+    def __init__(self, firstItem: ExplorationNode):
         self.items = []
+        self.items.append(firstItem)
         self.unique_set = set()
 
-    def push(self, item):
-        if not isinstance(item, ExplorationNode):
-            raise ValueError("Item must be an instance of ExplorationNode.")
-
+    def push(self, item: ExplorationNode):
         # Check if the same snake is already in the stack
         for existing_item in self.items:
             if existing_item.snake.segments == item.snake.segments:
-                return existing_item
+                item.discard()
+                return None
 
         self.items.append(item)
         self.unique_set.add(item)
-        return item
+        return None
 
     def pop(self):
         if not self.is_empty():

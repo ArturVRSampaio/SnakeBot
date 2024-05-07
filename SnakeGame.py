@@ -6,7 +6,7 @@ from Constants import *
 from Snake import Snake
 from SnakeBot import SnakeBot
 
-from Utils import new_food_position, snake_ate_the_food, is_game_over
+from Utils import new_food_position, will_snake_eat_the_food, is_game_over
 
 
 class Game:
@@ -58,7 +58,7 @@ class Game:
         self.draw_food(self.food, self.screen)
         pygame.display.flip()
 
-        directions =[]
+        directions = []
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -71,7 +71,7 @@ class Game:
 
             self.snake.move()
 
-            if snake_ate_the_food(self.snake, self.food):
+            if will_snake_eat_the_food(self.snake, self.food):
                 directions = self.snakeBot.decide_dfs(self.snake, self.food)
                 self.snake.add_segment()
                 self.score += 1
@@ -85,5 +85,5 @@ class Game:
             self.draw_food(self.food, self.screen)
             pygame.display.flip()
 
-            self.clock.tick(60)  # Control the frame rate
+            self.clock.tick(GAME_SPEED)
 

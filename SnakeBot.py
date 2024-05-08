@@ -23,6 +23,9 @@ class SnakeBot:
                     path.append(node.snake.direction)
                     node = node.parent
 
+                if not path:
+                    path.append(self.decide_by_side(snake, food))
+
                 return path
             else:
                 node.explore()

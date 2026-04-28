@@ -5,23 +5,21 @@ class UniqueStack:
     def __init__(self, firstItem: ExplorationNode):
         self.items = []
         self.items.append(firstItem)
-        self.unique_set = set()
+        self.unique_set = {tuple(firstItem.snake.segments)}
 
     def push(self, item: ExplorationNode):
-        for existing_item in self.items:
-            if existing_item.snake.segments == item.snake.segments:
-                item.discard()
-                return None
+        key = tuple(item.snake.segments)
+        if key in self.unique_set:
+            item.discard()
+            return None
 
         self.items.append(item)
-        self.unique_set.add(item)
+        self.unique_set.add(key)
         return None
 
     def pop(self):
         if not self.is_empty():
-            popped_item = self.items.pop()
-            self.unique_set.remove(popped_item)
-            return popped_item
+            return self.items.pop()
 
     def is_empty(self):
         return len(self.items) == 0
@@ -33,6 +31,8 @@ class UniqueStack:
         return any(item.status != "discarded" for item in self.items)
 
     def get_last_unexplored_item(self):
+        while self.items and self.items[-1].is_discarded():
+            self.items.pop()
         for item in reversed(self.items):
             if item.status == "unexplored":
                 return item

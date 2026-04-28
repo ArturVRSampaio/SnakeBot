@@ -71,10 +71,10 @@ class Game:
             self.snake.move()
 
             if will_snake_eat_the_food(self.snake, self.food):
-                directions = self.snakeBot.decide(self.snake, self.food)
                 self.snake.add_segment()
                 self.score += 1
                 self.food = new_food_position()
+                directions = self.snakeBot.decide(self.snake, self.food)
 
             if is_game_over(self.snake):
                 self.game_over()

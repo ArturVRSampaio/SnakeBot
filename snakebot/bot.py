@@ -23,7 +23,9 @@ class SnakeBot:
         stack = UniqueStack(ExplorationNode(snake))
 
         while stack.has_not_discarted_items():
-            node = stack.get_last_not_discarded_item()
+            node = stack.get_last_unexplored_item()
+            if node is None:
+                break
 
             if is_game_over(node.snake):
                 node.discard()
@@ -41,7 +43,6 @@ class SnakeBot:
                 return path
             else:
                 node.explore()
-                discard_count = 0
 
                 for direction in DIRECTIONS:
                     new_snake = copy.deepcopy(node.snake)
@@ -50,10 +51,6 @@ class SnakeBot:
 
                     new_node = ExplorationNode(new_snake, node)
                     stack.push(new_node)
-                    if new_node.is_discarded():
-                        discard_count += 1
-                if discard_count == 4:
-                    node.discard()
 
         return [snake.direction]
 

@@ -4,10 +4,20 @@ import copy
 from snakebot.structures.exploration_node import ExplorationNode
 from snakebot.structures.unique_stack import UniqueStack
 from snakebot.utils import is_game_over, will_snake_eat_the_food
-from snakebot.constants import DIRECTIONS, UP, DOWN, LEFT, RIGHT
+from snakebot.constants import DIRECTIONS, UP, DOWN, LEFT, RIGHT, STRATEGY
 
 
 class SnakeBot:
+
+    def decide(self, snake, food):
+        if STRATEGY == "dfs":
+            return self.decide_dfs(snake, food)
+        elif STRATEGY == "distance":
+            return [self.decide_with_distance(snake, food)]
+        elif STRATEGY == "greedy":
+            return [self.decide_by_side(snake, food)]
+        else:
+            raise ValueError(f"Unknown strategy: '{STRATEGY}'. Valid options: 'dfs', 'distance', 'greedy'")
 
     def decide_dfs(self, snake, food):
         stack = UniqueStack(ExplorationNode(snake))

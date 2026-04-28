@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from snakebot.snake import Snake
 from snakebot.bot import SnakeBot, _manhattan_distance, _euclidean_distance, _chebyshev_distance
 from snakebot.constants import RIGHT, LEFT, UP, DOWN
@@ -8,6 +10,37 @@ def _snake_at(x, y):
     s = Snake()
     s.segments = [(x, y)]
     return s
+
+
+class TestDecide:
+    def setup_method(self):
+        self.bot = SnakeBot()
+        self.snake = _snake_at(10, 10)
+        self.food = (15, 10)
+
+    def test_dfs_strategy_returns_list(self):
+        with patch("snakebot.bot.STRATEGY", "dfs"):
+            result = self.bot.decide(self.snake, self.food)
+        assert isinstance(result, list)
+        assert len(result) > 0
+
+    def test_distance_strategy_returns_list(self):
+        with patch("snakebot.bot.STRATEGY", "distance"):
+            result = self.bot.decide(self.snake, self.food)
+        assert isinstance(result, list)
+        assert result[0] in [UP, DOWN, LEFT, RIGHT]
+
+    def test_greedy_strategy_returns_list(self):
+        with patch("snakebot.bot.STRATEGY", "greedy"):
+            result = self.bot.decide(self.snake, self.food)
+        assert isinstance(result, list)
+        assert result[0] in [UP, DOWN, LEFT, RIGHT]
+
+    def test_invalid_strategy_raises(self):
+        import pytest
+        with patch("snakebot.bot.STRATEGY", "unknown"):
+            with pytest.raises(ValueError, match="Unknown strategy"):
+                self.bot.decide(self.snake, self.food)
 
 
 class TestDistanceFunctions:

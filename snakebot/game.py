@@ -64,14 +64,14 @@ class Game:
                     self.game_over()
 
             if not directions:
-                directions = self.snakeBot.decide_dfs(self.snake, self.food)
+                directions = self.snakeBot.decide(self.snake, self.food)
 
             self.snake.direction = directions.pop()
 
             self.snake.move()
 
             if will_snake_eat_the_food(self.snake, self.food):
-                directions = self.snakeBot.decide_dfs(self.snake, self.food)
+                directions = self.snakeBot.decide(self.snake, self.food)
                 self.snake.add_segment()
                 self.score += 1
                 self.food = new_food_position()

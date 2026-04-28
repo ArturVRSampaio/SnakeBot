@@ -1,6 +1,7 @@
 from snakebot.snake import Snake
 from snakebot.structures.exploration_node import ExplorationNode
 from snakebot.structures.unique_stack import UniqueStack
+from snakebot.structures.unique_queue import UniqueQueue
 
 
 def _node(x=10, y=10):
@@ -141,3 +142,60 @@ class TestUniqueStack:
         assert stack.count_explored_items() == 0
         node.explore()
         assert stack.count_explored_items() == 1
+
+
+class TestUniqueQueue:
+    def test_initial_size(self):
+        queue = UniqueQueue(_node())
+        assert queue.size() == 1
+        assert not queue.is_empty()
+
+    def test_push_unique_item(self):
+        queue = UniqueQueue(_node(5, 5))
+        queue.push(_node(6, 5))
+        assert queue.size() == 2
+
+    def test_push_duplicate_is_discarded(self):
+        queue = UniqueQueue(_node(5, 5))
+        duplicate = _node(5, 5)
+        queue.push(duplicate)
+        assert duplicate.is_discarded()
+        assert queue.size() == 1
+
+    def test_has_unexplored_items_true(self):
+        queue = UniqueQueue(_node())
+        assert queue.has_unexplored_items()
+
+    def test_has_unexplored_items_false_when_explored(self):
+        node = _node()
+        queue = UniqueQueue(node)
+        node.explore()
+        assert not queue.has_unexplored_items()
+
+    def test_get_first_unexplored_item(self):
+        node = _node()
+        queue = UniqueQueue(node)
+        assert queue.get_first_unexplored_item() is node
+
+    def test_get_first_unexplored_item_skips_processed(self):
+        node1 = _node(5, 5)
+        queue = UniqueQueue(node1)
+        node2 = _node(6, 5)
+        queue.push(node2)
+        node1.explore()
+        assert queue.get_first_unexplored_item() is node2
+
+    def test_get_first_unexplored_item_returns_none_when_all_processed(self):
+        node = _node()
+        queue = UniqueQueue(node)
+        node.explore()
+        assert queue.get_first_unexplored_item() is None
+
+    def test_fifo_order(self):
+        node1 = _node(5, 5)
+        queue = UniqueQueue(node1)
+        node2 = _node(6, 5)
+        node3 = _node(7, 5)
+        queue.push(node2)
+        queue.push(node3)
+        assert queue.get_first_unexplored_item() is node1

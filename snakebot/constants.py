@@ -17,5 +17,5 @@ DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 GAME_SPEED = 100
 
 # Strategy used by the bot to find the next move.
-# Options: "dfs", "distance", "greedy"
+# Options: "dfs", "bfs", "distance", "greedy"
 STRATEGY = "dfs"

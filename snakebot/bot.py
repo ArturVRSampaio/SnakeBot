@@ -3,6 +3,7 @@ import copy
 
 from snakebot.structures.exploration_node import ExplorationNode
 from snakebot.structures.unique_stack import UniqueStack
+from snakebot.structures.unique_queue import UniqueQueue
 from snakebot.utils import is_game_over, will_snake_eat_the_food
 from snakebot.constants import DIRECTIONS, UP, DOWN, LEFT, RIGHT, STRATEGY
 
@@ -12,12 +13,14 @@ class SnakeBot:
     def decide(self, snake, food):
         if STRATEGY == "dfs":
             return self.decide_dfs(snake, food)
+        elif STRATEGY == "bfs":
+            return self.decide_bfs(snake, food)
         elif STRATEGY == "distance":
             return [self.decide_with_distance(snake, food)]
         elif STRATEGY == "greedy":
             return [self.decide_by_side(snake, food)]
         else:
-            raise ValueError(f"Unknown strategy: '{STRATEGY}'. Valid options: 'dfs', 'distance', 'greedy'")
+            raise ValueError(f"Unknown strategy: '{STRATEGY}'. Valid options: 'dfs', 'bfs', 'distance', 'greedy'")
 
     def decide_dfs(self, snake, food):
         stack = UniqueStack(ExplorationNode(snake))
@@ -53,8 +56,37 @@ class SnakeBot:
         return [snake.direction]
 
     def decide_bfs(self, snake, food):
-        queue = []
-        return snake.direction
+        queue = UniqueQueue(ExplorationNode(snake))
+
+        while queue.has_unexplored_items():
+            node = queue.get_first_unexplored_item()
+
+            if is_game_over(node.snake):
+                node.discard()
+            elif will_snake_eat_the_food(node.snake, food):
+                node.explore()
+                path = []
+
+                while node.parent:
+                    path.append(node.snake.direction)
+                    node = node.parent
+
+                if not path:
+                    path.append(self.decide_by_side(snake, food))
+
+                return path
+            else:
+                node.explore()
+
+                for direction in DIRECTIONS:
+                    new_snake = copy.deepcopy(node.snake)
+                    new_snake.direction = direction
+                    new_snake.move()
+
+                    new_node = ExplorationNode(new_snake, node)
+                    queue.push(new_node)
+
+        return [snake.direction]
 
     def decide_with_distance(self, snake, food):
         paths = []

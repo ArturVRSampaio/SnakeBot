@@ -3,7 +3,7 @@ from unittest.mock import patch
 from snakebot.snake import Snake
 from snakebot.bot import SnakeBot, _manhattan_distance, _euclidean_distance, _chebyshev_distance
 from snakebot.constants import RIGHT, LEFT, UP, DOWN
-from snakebot.utils import will_snake_eat_the_food
+from snakebot.utils import will_snake_eat_the_food, new_food_position
 
 
 def _snake_at(x, y):
@@ -20,6 +20,12 @@ class TestDecide:
 
     def test_dfs_strategy_returns_list(self):
         with patch("snakebot.bot.STRATEGY", "dfs"):
+            result = self.bot.decide(self.snake, self.food)
+        assert isinstance(result, list)
+        assert len(result) > 0
+
+    def test_bfs_strategy_returns_list(self):
+        with patch("snakebot.bot.STRATEGY", "bfs"):
             result = self.bot.decide(self.snake, self.food)
         assert isinstance(result, list)
         assert len(result) > 0
@@ -130,10 +136,55 @@ class TestDecideWithDistance:
 
 
 class TestDecideBfs:
-    def test_stub_returns_current_direction(self):
-        bot = SnakeBot()
+    def setup_method(self):
+        self.bot = SnakeBot()
+
+    def test_returns_list(self):
+        path = self.bot.decide_bfs(_snake_at(10, 10), (15, 10))
+        assert isinstance(path, list)
+        assert len(path) > 0
+
+    def test_finds_adjacent_food_right(self):
+        path = self.bot.decide_bfs(_snake_at(10, 10), (11, 10))
+        assert path == [RIGHT]
+
+    def test_finds_adjacent_food_down(self):
+        path = self.bot.decide_bfs(_snake_at(10, 10), (10, 11))
+        assert path == [DOWN]
+
+    def test_path_leads_to_food(self):
         snake = _snake_at(10, 10)
-        assert bot.decide_bfs(snake, (15, 10)) == snake.direction
+        food = (13, 10)
+        path = self.bot.decide_bfs(snake, food)
+
+        for direction in reversed(path):
+            snake.direction = direction
+            snake.move()
+
+        assert will_snake_eat_the_food(snake, food)
+
+    def test_finds_shortest_path(self):
+        snake = _snake_at(10, 10)
+        food = (13, 10)  # 3 steps right
+        path = self.bot.decide_bfs(snake, food)
+        assert len(path) == 3
+
+    def test_head_already_at_food_uses_decide_by_side_fallback(self):
+        snake = _snake_at(10, 10)
+        path = self.bot.decide_bfs(snake, (10, 10))
+        assert len(path) == 1
+        assert path[0] in [UP, DOWN, LEFT, RIGHT]
+
+    def test_returns_direction_when_trapped(self):
+        snake = Snake()
+        snake.segments = [
+            (1, 1),
+            (0, 1), (0, 0), (1, 0), (2, 0),
+            (2, 1), (2, 2), (1, 2), (0, 2),
+        ]
+        path = self.bot.decide_bfs(snake, (5, 5))
+        assert isinstance(path, list)
+        assert len(path) > 0
 
 
 class TestDecideDfs:

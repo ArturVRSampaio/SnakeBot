@@ -15,7 +15,7 @@ The active strategy is set via the `STRATEGY` constant in `snakebot/constants.py
 | Greedy     | `"greedy"`      | O(1)                | O(L)               | No                     |
 | Distance   | `"distance"`    | O(1)                | O(L)               | No                     |
 | DFS        | `"dfs"`         | O(3^d × L)          | O(3^d × L)         | Unlikely               |
-| BFS        | *(stub)*        | O(N × L)            | O(N × L)           | Unlikely               |
+| BFS        | `"bfs"`         | O(N × L)            | O(N × L)           | Unlikely               |
 
 *N = total grid cells (W × H), L = current snake length, d = depth of the path found.*
 
@@ -41,9 +41,9 @@ Explores the game-state space using a depth-first search over full snake snapsho
 - **Space:** O(3^d × L) — the stack stores one full snake state per open node.
 - **Completes the game? Unlikely.** DFS is complete: it will always find *a* path to the food if one exists. However, it finds the first path, not the safest one, so it frequently leads the snake into a position where no path to the *next* food exists. On long runs the snake tends to cut off large parts of the grid and eventually get trapped.
 
-### BFS *(stub, not yet implemented)*
+### BFS (`"bfs"`)
 
-Would explore states level by level and return the **shortest** path to the food, guaranteeing minimum moves.
+Explores the game-state space level by level using a FIFO queue of full snake snapshots. A `UniqueQueue` deduplicates states in O(1). Because BFS expands nodes in order of distance from the start, the first path found is guaranteed to be the shortest.
 
 - **Time:** O(N × L) per food — visits at most N distinct states, each costing O(L) to copy.
 - **Space:** O(N × L) — the queue holds all frontier states simultaneously, much heavier than DFS.
@@ -62,6 +62,7 @@ snakebot/
   structures/
     exploration_node.py               # Wraps snake state for graph search
     unique_stack.py                   # Deduplicating stack for DFS
+    unique_queue.py                   # Deduplicating queue for BFS
 tests/
   test_snake.py                       # Snake movement and growth tests
   test_utils.py                       # Collision and food helper tests
@@ -138,4 +139,4 @@ Edit `snakebot/constants.py` to change game settings:
 | `HEIGHT`     | 800        | Window height in pixels                             |
 | `GRID_SIZE`  | 20         | Cell size in pixels                                 |
 | `GAME_SPEED` | 100        | Ticks per second                                    |
-| `STRATEGY`   | `"dfs"`    | Pathfinding algorithm: `"dfs"`, `"distance"`, `"greedy"` |
+| `STRATEGY`   | `"dfs"`    | Pathfinding algorithm: `"dfs"`, `"bfs"`, `"distance"`, `"greedy"` |

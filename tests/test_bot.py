@@ -1,7 +1,7 @@
-from Snake import Snake
-from SnakeBot import SnakeBot, _manhattan_distance, _euclidean_distance, _chebyshev_distance
-from Constants import RIGHT, LEFT, UP, DOWN
-from Utils import will_snake_eat_the_food
+from snakebot.snake import Snake
+from snakebot.bot import SnakeBot, _manhattan_distance, _euclidean_distance, _chebyshev_distance
+from snakebot.constants import RIGHT, LEFT, UP, DOWN
+from snakebot.utils import will_snake_eat_the_food
 
 
 def _snake_at(x, y):
@@ -50,29 +50,24 @@ class TestDecideBySide:
         assert self.bot.decide_by_side(_snake_at(10, 10), (10, 15)) == DOWN
 
     def test_survival_right_when_optimal_blocked(self):
-        # food at same position → all optimal checks fail → survival RIGHT is safe
         snake = _snake_at(10, 10)
         assert self.bot.decide_by_side(snake, (10, 10)) == RIGHT
 
     def test_survival_left_when_right_is_wall(self):
-        # at right wall: survival RIGHT hits wall, survival LEFT is safe
         snake = _snake_at(39, 10)
         assert self.bot.decide_by_side(snake, (39, 10)) == LEFT
 
     def test_survival_up_when_right_and_left_blocked(self):
-        # right wall + body blocking LEFT → survival UP is first safe option
         snake = Snake()
         snake.segments = [(39, 10), (38, 10), (38, 9)]
         assert self.bot.decide_by_side(snake, (39, 10)) == UP
 
     def test_survival_down_when_right_left_up_blocked(self):
-        # right wall + body blocking LEFT + top wall → survival DOWN is first safe option
         snake = Snake()
         snake.segments = [(39, 0), (38, 0), (39, 1)]
         assert self.bot.decide_by_side(snake, (39, 0)) == DOWN
 
     def test_no_choice_returns_current_direction(self):
-        # completely trapped at corner: all 4 moves are game over
         snake = Snake()
         snake.segments = [(0, 0), (1, 0), (0, 1), (5, 5)]
         assert self.bot.decide_by_side(snake, (15, 15)) == snake.direction
@@ -96,7 +91,6 @@ class TestDecideWithDistance:
         assert direction != LEFT
 
     def test_returns_current_direction_when_all_moves_fatal(self):
-        # trapped at corner: all 4 moves are game over → fallback to snake.direction
         snake = Snake()
         snake.segments = [(0, 0), (1, 0), (0, 1), (5, 5)]
         assert self.bot.decide_with_distance(snake, (15, 15)) == snake.direction
@@ -140,7 +134,6 @@ class TestDecideDfs:
         assert will_snake_eat_the_food(snake, food)
 
     def test_head_already_at_food_uses_decide_by_side_fallback(self):
-        # when head is already on the food, path is empty → falls back to decide_by_side
         snake = _snake_at(10, 10)
         path = self.bot.decide_dfs(snake, (10, 10))
         assert len(path) == 1

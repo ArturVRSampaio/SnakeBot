@@ -1,4 +1,4 @@
-from Constants import *
+from snakebot.constants import GRID_WIDTH, GRID_HEIGHT, RIGHT
 
 
 class Snake:

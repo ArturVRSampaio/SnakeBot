@@ -1,5 +1,5 @@
-from Snake import Snake
-from Constants import RIGHT, LEFT, UP, DOWN, GRID_WIDTH, GRID_HEIGHT
+from snakebot.snake import Snake
+from snakebot.constants import RIGHT, LEFT, UP, DOWN, GRID_WIDTH, GRID_HEIGHT
 
 
 def test_initial_position():

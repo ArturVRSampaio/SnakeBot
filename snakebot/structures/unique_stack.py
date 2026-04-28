@@ -1,4 +1,4 @@
-from Structures.ExplorationNode import ExplorationNode
+from snakebot.structures.exploration_node import ExplorationNode
 
 
 class UniqueStack:
@@ -8,7 +8,6 @@ class UniqueStack:
         self.unique_set = set()
 
     def push(self, item: ExplorationNode):
-        # Check if the same snake is already in the stack
         for existing_item in self.items:
             if existing_item.snake.segments == item.snake.segments:
                 item.discard()
@@ -37,7 +36,7 @@ class UniqueStack:
         for item in reversed(self.items):
             if item.status == "unexplored":
                 return item
-        return None  # No unexplored items found
+        return None
 
     def get_explored_items(self):
         return [item for item in self.items if item.status == "explored"]
@@ -46,7 +45,7 @@ class UniqueStack:
         for item in reversed(self.items):
             if item.status != "discarded":
                 return item
-        return None  # No non-discarded items found
+        return None
 
     def count_unexplored_items(self):
         return sum(1 for item in self.items if item.status == "unexplored")
@@ -56,5 +55,3 @@ class UniqueStack:
 
     def count_explored_items(self):
         return sum(1 for item in self.items if item.status == "explored")
-
-

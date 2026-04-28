@@ -2,7 +2,7 @@ class ExplorationNode:
     def __init__(self, snake, parent=None):
         self.parent = parent
         self.snake = snake
-        self.status = "unexplored"  # Default status is unexplored
+        self.status = "unexplored"
 
     def explore(self):
         self.status = "explored"

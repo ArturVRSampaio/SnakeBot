@@ -15,22 +15,24 @@ Additional algorithms are implemented but not currently active:
 ## Project structure
 
 ```
-Main.py                          # Entry point
-SnakeGame.py                     # Game loop and rendering
-Snake.py                         # Snake state and movement
-SnakeBot.py                      # AI decision-making
-Utils.py                         # Collision detection and food helpers
-Constants.py                     # Grid dimensions, colors, directions, speed
-Structures/
-  ExplorationNode.py             # Wraps snake state for graph search
-  UniqueStack.py                 # Deduplicating stack for DFS
+main.py                               # Entry point
+snakebot/
+  constants.py                        # Grid dimensions, colors, directions, speed
+  snake.py                            # Snake state and movement
+  utils.py                            # Collision detection and food helpers
+  bot.py                              # AI decision-making
+  game.py                             # Game loop and rendering
+  structures/
+    exploration_node.py               # Wraps snake state for graph search
+    unique_stack.py                   # Deduplicating stack for DFS
 tests/
-  test_snake.py                  # Snake movement and growth tests
-  test_utils.py                  # Collision and food helper tests
-  test_structures.py             # ExplorationNode and UniqueStack tests
-  test_snakebot.py               # AI algorithm tests
-.github/workflows/tests.yml     # CI — runs tests on push and PRs
-pytest.ini                       # Test and coverage configuration
+  test_snake.py                       # Snake movement and growth tests
+  test_utils.py                       # Collision and food helper tests
+  test_structures.py                  # ExplorationNode and UniqueStack tests
+  test_bot.py                         # AI algorithm tests
+.github/workflows/tests.yml          # CI — runs tests on push and PRs
+pytest.ini                            # Test configuration
+.coveragerc                           # Coverage configuration
 ```
 
 ## Requirements
@@ -47,7 +49,7 @@ pip install pygame
 ## Running
 
 ```bash
-python Main.py
+python main.py
 ```
 
 ## Tests
@@ -75,23 +77,23 @@ python -m pytest -v
 Run with coverage report:
 
 ```bash
-python -m pytest --cov=. --cov-report=term-missing
+python -m pytest --cov=snakebot --cov-report=term-missing
 ```
 
-All logic files (`Snake`, `SnakeBot`, `Utils`, `Structures`) are at **100% line coverage**. `Main.py` and `SnakeGame.py` are excluded from coverage as they are pygame UI entry points with no standalone logic.
+All logic files reach **100% line coverage**. `snakebot/game.py` and `main.py` are excluded as they are pygame UI entry points with no standalone logic.
 
 ### What is tested
 
-| File                         | Coverage                                                                                          |
-|------------------------------|---------------------------------------------------------------------------------------------------|
-| `tests/test_snake.py`        | Movement in all directions, growth on food, tail dropping                                         |
-| `tests/test_utils.py`        | Wall and self-collision detection, food detection, food spawn bounds                              |
-| `tests/test_structures.py`   | `ExplorationNode` status transitions; `UniqueStack` push, pop, deduplication, query methods       |
-| `tests/test_snakebot.py`     | Distance functions, all `decide_by_side` branches, `decide_with_distance`, `decide_dfs`, `decide_bfs` |
+| File                       | Coverage                                                                                        |
+|----------------------------|-------------------------------------------------------------------------------------------------|
+| `tests/test_snake.py`      | Movement in all directions, growth on food, tail dropping                                       |
+| `tests/test_utils.py`      | Wall and self-collision detection, food detection, food spawn bounds                            |
+| `tests/test_structures.py` | `ExplorationNode` status transitions; `UniqueStack` push, pop, deduplication, query methods     |
+| `tests/test_bot.py`        | Distance functions, all `decide_by_side` branches, `decide_with_distance`, `decide_dfs`, `decide_bfs` |
 
 ## Configuration
 
-Edit `Constants.py` to change game settings:
+Edit `snakebot/constants.py` to change game settings:
 
 | Constant     | Default | Description              |
 |--------------|---------|--------------------------|

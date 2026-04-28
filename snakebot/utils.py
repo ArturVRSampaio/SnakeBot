@@ -1,7 +1,6 @@
 import random
 
-
-from Constants import *
+from snakebot.constants import GRID_WIDTH, GRID_HEIGHT
 
 
 def is_game_over(snake):
@@ -10,7 +9,6 @@ def is_game_over(snake):
         return True
     elif head in snake.segments[1:]:
         return True
-
     return False
 
 

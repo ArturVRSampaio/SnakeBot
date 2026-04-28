@@ -1,6 +1,6 @@
-from Snake import Snake
-from Utils import is_game_over, will_snake_eat_the_food, new_food_position
-from Constants import GRID_WIDTH, GRID_HEIGHT
+from snakebot.snake import Snake
+from snakebot.utils import is_game_over, will_snake_eat_the_food, new_food_position
+from snakebot.constants import GRID_WIDTH, GRID_HEIGHT
 
 
 def _snake_at(x, y):

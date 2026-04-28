@@ -1,8 +1,10 @@
-from Structures.ExplorationNode import ExplorationNode
-from Structures.UniqueStack import UniqueStack
-from Utils import *
 import math
 import copy
+
+from snakebot.structures.exploration_node import ExplorationNode
+from snakebot.structures.unique_stack import UniqueStack
+from snakebot.utils import is_game_over, will_snake_eat_the_food
+from snakebot.constants import DIRECTIONS, UP, DOWN, LEFT, RIGHT
 
 
 class SnakeBot:
@@ -31,9 +33,6 @@ class SnakeBot:
                 node.explore()
                 discard_count = 0
 
-                # if random.randrange(0, 10) > 6:
-                #     random.shuffle(DIRECTIONS)
-
                 for direction in DIRECTIONS:
                     new_snake = copy.deepcopy(node.snake)
                     new_snake.direction = direction
@@ -61,7 +60,6 @@ class SnakeBot:
             if not is_game_over(new_snake):
                 paths.append([new_snake.direction, _manhattan_distance(new_snake.head(), food)])
 
-        # already dead
         if not paths:
             return snake.direction
 

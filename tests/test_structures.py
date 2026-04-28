@@ -1,6 +1,6 @@
-from Snake import Snake
-from Structures.ExplorationNode import ExplorationNode
-from Structures.UniqueStack import UniqueStack
+from snakebot.snake import Snake
+from snakebot.structures.exploration_node import ExplorationNode
+from snakebot.structures.unique_stack import UniqueStack
 
 
 def _node(x=10, y=10):

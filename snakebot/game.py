@@ -2,11 +2,10 @@ import sys
 
 import pygame
 
-from Constants import *
-from Snake import Snake
-from SnakeBot import SnakeBot
-
-from Utils import new_food_position, will_snake_eat_the_food, is_game_over
+from snakebot.constants import WIDTH, HEIGHT, GRID_SIZE, BLACK, WHITE, GREEN, RED, UP, DOWN, LEFT, RIGHT, GAME_SPEED
+from snakebot.snake import Snake
+from snakebot.bot import SnakeBot
+from snakebot.utils import new_food_position, will_snake_eat_the_food, is_game_over
 
 
 class Game:
@@ -86,4 +85,3 @@ class Game:
             pygame.display.flip()
 
             self.clock.tick(GAME_SPEED)
-

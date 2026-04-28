@@ -18,5 +18,9 @@ def will_snake_eat_the_food(snake, food):
     return head_x == food_x and head_y == food_y
 
 
-def new_food_position() -> tuple[int, int]:
-    return random.randint(0, GRID_WIDTH - 1), random.randint(0, GRID_HEIGHT - 1)
+def new_food_position(snake_segments) -> tuple[int, int]:
+    occupied = set(snake_segments)
+    while True:
+        pos = random.randint(0, GRID_WIDTH - 1), random.randint(0, GRID_HEIGHT - 1)
+        if pos not in occupied:
+            return pos

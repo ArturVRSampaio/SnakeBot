@@ -22,10 +22,8 @@ class SnakeBot:
     def decide_dfs(self, snake, food):
         stack = UniqueStack(ExplorationNode(snake))
 
-        while stack.has_not_discarted_items():
+        while stack.has_unexplored_items():
             node = stack.get_last_unexplored_item()
-            if node is None:
-                break
 
             if is_game_over(node.snake):
                 node.discard()

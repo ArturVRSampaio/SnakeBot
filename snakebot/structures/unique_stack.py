@@ -30,6 +30,9 @@ class UniqueStack:
     def has_not_discarted_items(self):
         return any(item.status != "discarded" for item in self.items)
 
+    def has_unexplored_items(self):
+        return any(item.is_unexplored() for item in self.items)
+
     def get_last_unexplored_item(self):
         while self.items and self.items[-1].is_discarded():
             self.items.pop()

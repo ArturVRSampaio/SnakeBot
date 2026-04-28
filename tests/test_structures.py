@@ -65,6 +65,22 @@ class TestUniqueStack:
         node.discard()
         assert not stack.has_not_discarted_items()
 
+    def test_has_unexplored_items_true(self):
+        stack = UniqueStack(_node())
+        assert stack.has_unexplored_items()
+
+    def test_has_unexplored_items_false_when_explored(self):
+        node = _node()
+        stack = UniqueStack(node)
+        node.explore()
+        assert not stack.has_unexplored_items()
+
+    def test_has_unexplored_items_false_when_discarded(self):
+        node = _node()
+        stack = UniqueStack(node)
+        node.discard()
+        assert not stack.has_unexplored_items()
+
     def test_get_last_not_discarded(self):
         node = _node()
         stack = UniqueStack(node)

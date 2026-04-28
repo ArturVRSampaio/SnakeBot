@@ -53,6 +53,15 @@ def test_will_eat_food_false_adjacent():
 
 def test_new_food_within_bounds():
     for _ in range(50):
-        x, y = new_food_position()
+        x, y = new_food_position([])
         assert 0 <= x < GRID_WIDTH
         assert 0 <= y < GRID_HEIGHT
+
+
+def test_new_food_not_on_snake():
+    snake = Snake()
+    all_cells = [(x, y) for x in range(GRID_WIDTH) for y in range(GRID_HEIGHT)]
+    # Leave only one free cell
+    snake.segments = [c for c in all_cells if c != (0, 0)]
+    food = new_food_position(snake.segments)
+    assert food == (0, 0)

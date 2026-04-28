@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "A file was just modified. Tool input: $ARGUMENTS\n\nIf the modified file is a Python (.py) file:\n1. Read the modified file to understand what changed.\n2. Read the current README.md at /home/arturvrsampaio/Documents/SnakeBot/README.md.\n3. Decide if the README needs updating based on the change — for example: new algorithms added, new files or classes introduced, changed behavior, new configuration options, changed dependencies.\n4. If it needs updating, edit the README.md to reflect the changes. Keep the same English, style, and format already in the file.\n5. If the file is not a .py file, or if the README already reflects the current state, do nothing.",
+            "statusMessage": "Checking if README needs updating...",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

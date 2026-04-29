@@ -2,7 +2,7 @@ import sys
 
 import pygame
 
-from snakebot.constants import WIDTH, HEIGHT, GRID_SIZE, BLACK, WHITE, GREEN, RED, GAME_SPEED
+from snakebot.constants import WIDTH, HEIGHT, GRID_SIZE, BLACK, WHITE, GREEN, RED, GHOST_GREEN, GHOST_RED, GAME_SPEED
 from snakebot.snake import Snake
 from snakebot.bot import SnakeBot
 from snakebot.utils import new_food_position, will_snake_eat_the_food, is_game_over
@@ -31,6 +31,36 @@ class Game:
                 pygame.draw.rect(screen, RED,
                                  (segment[0] * GRID_SIZE, segment[1] * GRID_SIZE, GRID_SIZE - 1, GRID_SIZE - 1))
 
+    def draw_ghost_snake(self, snake, screen):
+        for key, segment in enumerate(snake.segments):
+            pygame.draw.rect(screen, GHOST_GREEN,
+                             (segment[0] * GRID_SIZE, segment[1] * GRID_SIZE, GRID_SIZE - 1, GRID_SIZE - 1))
+            if key == 0:
+                pygame.draw.rect(screen, GHOST_RED,
+                                 (segment[0] * GRID_SIZE, segment[1] * GRID_SIZE, GRID_SIZE - 1, GRID_SIZE - 1))
+
+    def _make_ghost_callback(self):
+        last_render = [0]
+        min_interval_ms = 1000 // 60
+
+        def callback(ghost_snake):
+            now = pygame.time.get_ticks()
+            if now - last_render[0] < min_interval_ms:
+                return
+            last_render[0] = now
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.game_over()
+
+            self.screen.fill(BLACK)
+            self.draw_snake_body(self.snake, self.screen)
+            self.draw_food(self.food, self.screen)
+            self.draw_ghost_snake(ghost_snake, self.screen)
+            pygame.display.flip()
+
+        return callback
+
     def game_over(self):
         pygame.quit()
         sys.exit()
@@ -48,7 +78,7 @@ class Game:
                     self.game_over()
 
             if not directions:
-                directions = self.snakeBot.decide(self.snake, self.food)
+                directions = self.snakeBot.decide(self.snake, self.food, self._make_ghost_callback())
 
             self.snake.direction = directions.pop()
 
@@ -62,7 +92,7 @@ class Game:
                 self.draw_snake_body(self.snake, self.screen)
                 self.draw_food(self.food, self.screen)
                 pygame.display.flip()
-                directions = self.snakeBot.decide(self.snake, self.food)
+                directions = self.snakeBot.decide(self.snake, self.food, self._make_ghost_callback())
 
             if is_game_over(self.snake):
                 self.game_over()

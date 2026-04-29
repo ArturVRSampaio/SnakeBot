@@ -5,28 +5,33 @@ from snakebot.structures.exploration_node import ExplorationNode
 from snakebot.structures.unique_stack import UniqueStack
 from snakebot.structures.unique_queue import UniqueQueue
 from snakebot.utils import is_game_over, will_snake_eat_the_food
-from snakebot.constants import DIRECTIONS, UP, DOWN, LEFT, RIGHT, STRATEGY
+from snakebot.constants import DIRECTIONS, UP, DOWN, LEFT, RIGHT, STRATEGY, GRID_WIDTH, GRID_HEIGHT
 
 
 class SnakeBot:
 
-    def decide(self, snake, food):
+    def decide(self, snake, food, render_callback=None):
         if STRATEGY == "dfs":
-            return self.decide_dfs(snake, food)
+            return self.decide_dfs(snake, food, render_callback)
         elif STRATEGY == "bfs":
-            return self.decide_bfs(snake, food)
+            return self.decide_bfs(snake, food, render_callback)
         elif STRATEGY == "distance":
             return [self.decide_with_distance(snake, food)]
         elif STRATEGY == "greedy":
             return [self.decide_by_side(snake, food)]
+        elif STRATEGY == "hamiltonian":
+            return [self.decide_hamiltonian(snake)]
         else:
-            raise ValueError(f"Unknown strategy: '{STRATEGY}'. Valid options: 'dfs', 'bfs', 'distance', 'greedy'")
+            raise ValueError(f"Unknown strategy: '{STRATEGY}'. Valid options: 'dfs', 'bfs', 'distance', 'greedy', 'hamiltonian'")
 
-    def decide_dfs(self, snake, food):
+    def decide_dfs(self, snake, food, render_callback=None):
         stack = UniqueStack(ExplorationNode(snake))
 
         while stack.has_unexplored_items():
             node = stack.get_last_unexplored_item()
+
+            if render_callback:
+                render_callback(node.snake)
 
             if is_game_over(node.snake):
                 node.discard()
@@ -55,11 +60,14 @@ class SnakeBot:
 
         return [snake.direction]
 
-    def decide_bfs(self, snake, food):
+    def decide_bfs(self, snake, food, render_callback=None):
         queue = UniqueQueue(ExplorationNode(snake))
 
         while queue.has_unexplored_items():
             node = queue.get_first_unexplored_item()
+
+            if render_callback:
+                render_callback(node.snake)
 
             if is_game_over(node.snake):
                 node.discard()
@@ -87,6 +95,12 @@ class SnakeBot:
                     queue.push(new_node)
 
         return [snake.direction]
+
+    def decide_hamiltonian(self, snake):
+        head = snake.head()
+        idx = _HAMILTONIAN_INDEX.get(head, 0)
+        next_pos = _HAMILTONIAN_PATH[(idx + 1) % len(_HAMILTONIAN_PATH)]
+        return (next_pos[0] - head[0], next_pos[1] - head[1])
 
     def decide_with_distance(self, snake, food):
         paths = []
@@ -145,6 +159,29 @@ class SnakeBot:
 
         # no choice
         return snake.direction
+
+
+def _build_hamiltonian_path():
+    # Row 0: full width left to right.
+    # Rows 1..H-1: serpentine over columns 1..W-1 only.
+    # Column 0: walk back up from (0,H-1) to (0,1) to close the cycle at (0,0).
+    path = []
+    for x in range(GRID_WIDTH):
+        path.append((x, 0))
+    for y in range(1, GRID_HEIGHT):
+        if y % 2 == 1:
+            for x in range(GRID_WIDTH - 1, 0, -1):
+                path.append((x, y))
+        else:
+            for x in range(1, GRID_WIDTH):
+                path.append((x, y))
+    for y in range(GRID_HEIGHT - 1, 0, -1):
+        path.append((0, y))
+    return tuple(path)
+
+
+_HAMILTONIAN_PATH = _build_hamiltonian_path()
+_HAMILTONIAN_INDEX = {pos: i for i, pos in enumerate(_HAMILTONIAN_PATH)}
 
 
 def _manhattan_distance(head, food):

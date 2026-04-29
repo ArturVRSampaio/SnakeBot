@@ -1,8 +1,8 @@
 from unittest.mock import patch
 
 from snakebot.snake import Snake
-from snakebot.bot import SnakeBot, _manhattan_distance, _euclidean_distance, _chebyshev_distance
-from snakebot.constants import RIGHT, LEFT, UP, DOWN
+from snakebot.bot import SnakeBot, _manhattan_distance, _euclidean_distance, _chebyshev_distance, _HAMILTONIAN_PATH, _HAMILTONIAN_INDEX
+from snakebot.constants import RIGHT, LEFT, UP, DOWN, GRID_WIDTH, GRID_HEIGHT
 from snakebot.utils import will_snake_eat_the_food, new_food_position
 
 
@@ -41,6 +41,12 @@ class TestDecide:
             result = self.bot.decide(self.snake, self.food)
         assert isinstance(result, list)
         assert result[0] in [UP, DOWN, LEFT, RIGHT]
+
+    def test_hamiltonian_strategy_returns_list(self):
+        with patch("snakebot.bot.STRATEGY", "hamiltonian"):
+            result = self.bot.decide(self.snake, self.food)
+        assert isinstance(result, list)
+        assert len(result) == 1
 
     def test_invalid_strategy_raises(self):
         import pytest
@@ -139,6 +145,16 @@ class TestDecideBfs:
     def setup_method(self):
         self.bot = SnakeBot()
 
+    def test_render_callback_is_called(self):
+        calls = []
+        self.bot.decide_bfs(_snake_at(10, 10), (15, 10), render_callback=lambda s: calls.append(s))
+        assert len(calls) > 0
+
+    def test_render_callback_receives_snake(self):
+        snakes = []
+        self.bot.decide_bfs(_snake_at(10, 10), (11, 10), render_callback=lambda s: snakes.append(s))
+        assert all(hasattr(s, "segments") for s in snakes)
+
     def test_returns_list(self):
         path = self.bot.decide_bfs(_snake_at(10, 10), (15, 10))
         assert isinstance(path, list)
@@ -191,6 +207,16 @@ class TestDecideDfs:
     def setup_method(self):
         self.bot = SnakeBot()
 
+    def test_render_callback_is_called(self):
+        calls = []
+        self.bot.decide_dfs(_snake_at(10, 10), (15, 10), render_callback=lambda s: calls.append(s))
+        assert len(calls) > 0
+
+    def test_render_callback_receives_snake(self):
+        snakes = []
+        self.bot.decide_dfs(_snake_at(10, 10), (11, 10), render_callback=lambda s: snakes.append(s))
+        assert all(hasattr(s, "segments") for s in snakes)
+
     def test_returns_list(self):
         path = self.bot.decide_dfs(_snake_at(10, 10), (15, 10))
         assert isinstance(path, list)
@@ -233,3 +259,52 @@ class TestDecideDfs:
         path = self.bot.decide_dfs(snake, (5, 5))
         assert isinstance(path, list)
         assert len(path) > 0
+
+
+class TestDecideHamiltonian:
+    def setup_method(self):
+        self.bot = SnakeBot()
+
+    def test_returns_valid_direction(self):
+        direction = self.bot.decide_hamiltonian(_snake_at(0, 0))
+        assert direction in [UP, DOWN, LEFT, RIGHT]
+
+    def test_moves_right_on_first_row(self):
+        assert self.bot.decide_hamiltonian(_snake_at(0, 0)) == RIGHT
+        assert self.bot.decide_hamiltonian(_snake_at(5, 0)) == RIGHT
+
+    def test_moves_left_on_second_row(self):
+        assert self.bot.decide_hamiltonian(_snake_at(GRID_WIDTH - 1, 1)) == LEFT
+        assert self.bot.decide_hamiltonian(_snake_at(5, 1)) == LEFT
+
+    def test_moves_down_at_end_of_even_row(self):
+        assert self.bot.decide_hamiltonian(_snake_at(GRID_WIDTH - 1, 0)) == DOWN
+
+    def test_moves_down_at_end_of_odd_row(self):
+        # Row 1 (odd) ends at (1,1); next is (1,2)
+        assert self.bot.decide_hamiltonian(_snake_at(1, 1)) == DOWN
+
+    def test_column_0_returns_up_to_start(self):
+        # Column 0 is the return spine; (0,1) is the last cell before cycle closes
+        assert self.bot.decide_hamiltonian(_snake_at(0, 1)) == UP
+
+    def test_last_cell_adjacent_to_first_cell(self):
+        last = _HAMILTONIAN_PATH[-1]
+        first = _HAMILTONIAN_PATH[0]
+        assert abs(last[0] - first[0]) + abs(last[1] - first[1]) == 1
+
+    def test_path_covers_all_cells(self):
+        assert len(_HAMILTONIAN_PATH) == GRID_WIDTH * GRID_HEIGHT
+
+    def test_path_has_no_duplicate_cells(self):
+        assert len(set(_HAMILTONIAN_PATH)) == len(_HAMILTONIAN_PATH)
+
+    def test_index_matches_path(self):
+        for pos, idx in _HAMILTONIAN_INDEX.items():
+            assert _HAMILTONIAN_PATH[idx] == pos
+
+    def test_consecutive_cells_are_adjacent(self):
+        for i in range(len(_HAMILTONIAN_PATH) - 1):
+            x0, y0 = _HAMILTONIAN_PATH[i]
+            x1, y1 = _HAMILTONIAN_PATH[i + 1]
+            assert abs(x1 - x0) + abs(y1 - y0) == 1

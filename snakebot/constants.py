@@ -7,6 +7,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
+GHOST_GREEN = (0, 100, 0)
+GHOST_RED = (100, 0, 0)
 
 UP = (0, -1)
 DOWN = (0, 1)
@@ -17,5 +19,5 @@ DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 GAME_SPEED = 100
 
 # Strategy used by the bot to find the next move.
-# Options: "dfs", "bfs", "distance", "greedy"
-STRATEGY = "dfs"
+# Options: "dfs", "bfs", "distance", "greedy", "hamiltonian"
+STRATEGY = "hamiltonian"

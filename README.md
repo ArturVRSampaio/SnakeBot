@@ -10,12 +10,13 @@ The active strategy is set via the `STRATEGY` constant in `snakebot/constants.py
 
 ## Strategies
 
-| Strategy   | `STRATEGY` value | Time per food       | Space per food     | Can complete the game? |
-|------------|-----------------|---------------------|--------------------|------------------------|
-| Greedy     | `"greedy"`      | O(1)                | O(L)               | No                     |
-| Distance   | `"distance"`    | O(1)                | O(L)               | No                     |
-| DFS        | `"dfs"`         | O(3^d × L)          | O(3^d × L)         | Unlikely               |
-| BFS        | `"bfs"`         | O(N × L)            | O(N × L)           | Unlikely               |
+| Strategy      | `STRATEGY` value   | Time per move | Space       | Can complete the game? |
+|---------------|--------------------|---------------|-------------|------------------------|
+| Greedy        | `"greedy"`         | O(1)          | O(L)        | No                     |
+| Distance      | `"distance"`       | O(1)          | O(L)        | No                     |
+| DFS           | `"dfs"`            | O(3^d × L)    | O(3^d × L)  | Unlikely               |
+| BFS           | `"bfs"`            | O(N × L)      | O(N × L)    | Unlikely               |
+| Hamiltonian   | `"hamiltonian"`    | O(1)          | O(N)        | **Yes**                |
 
 *N = total grid cells (W × H), L = current snake length, d = depth of the path found.*
 
@@ -48,6 +49,13 @@ Explores the game-state space level by level using a FIFO queue of full snake sn
 - **Time:** O(N × L) per food — visits at most N distinct states, each costing O(L) to copy.
 - **Space:** O(N × L) — the queue holds all frontier states simultaneously, much heavier than DFS.
 - **Completes the game? Unlikely.** Shortest path to each food is better than DFS's arbitrary path, but like DFS it makes no guarantee about the state left behind after eating. The snake can still paint itself into a corner.
+
+### Hamiltonian (`"hamiltonian"`)
+
+Pre-computes a fixed boustrophedon (zigzag) circuit that visits every cell exactly once: row 0 left-to-right, row 1 right-to-left, row 2 left-to-right, and so on. At runtime the bot does a single O(1) dict lookup to find the current head in the circuit and returns the direction to the next cell.
+
+- **Time / Space:** O(1) per move — direction lookup in a pre-built index; O(N) one-time startup cost to build the path.
+- **Completes the game? Yes.** The circuit covers every cell, so the snake will reach any food position on every pass. It is the only strategy here that guarantees completing the game.
 
 ## Project structure
 
@@ -139,4 +147,4 @@ Edit `snakebot/constants.py` to change game settings:
 | `HEIGHT`     | 800        | Window height in pixels                             |
 | `GRID_SIZE`  | 20         | Cell size in pixels                                 |
 | `GAME_SPEED` | 100        | Ticks per second                                    |
-| `STRATEGY`   | `"dfs"`    | Pathfinding algorithm: `"dfs"`, `"bfs"`, `"distance"`, `"greedy"` |
+| `STRATEGY`   | `"dfs"`    | Pathfinding algorithm: `"dfs"`, `"bfs"`, `"distance"`, `"greedy"`, `"hamiltonian"` |

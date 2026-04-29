@@ -58,6 +58,10 @@ class Game:
                 self.snake.add_segment()
                 self.score += 1
                 self.food = new_food_position(self.snake.segments)
+                self.screen.fill(BLACK)
+                self.draw_snake_body(self.snake, self.screen)
+                self.draw_food(self.food, self.screen)
+                pygame.display.flip()
                 directions = self.snakeBot.decide(self.snake, self.food)
 
             if is_game_over(self.snake):

@@ -10,13 +10,15 @@ The active strategy is set via the `STRATEGY` constant in `snakebot/constants.py
 
 ## Strategies
 
-| Strategy      | `STRATEGY` value   | Time per move | Space       | Can complete the game? |
-|---------------|--------------------|---------------|-------------|------------------------|
-| Greedy        | `"greedy"`         | O(1)          | O(L)        | No                     |
-| Distance      | `"distance"`       | O(1)          | O(L)        | No                     |
-| DFS           | `"dfs"`            | O(3^d × L)    | O(3^d × L)  | Unlikely               |
-| BFS           | `"bfs"`            | O(N × L)      | O(N × L)    | Unlikely               |
-| Hamiltonian   | `"hamiltonian"`    | O(1)          | O(N)        | **Yes**                |
+| Strategy           | `STRATEGY` value   | Time per food    | Space           | Can complete the game? |
+|--------------------|--------------------|------------------|-----------------|------------------------|
+| Greedy             | `"greedy"`         | O(1)             | O(L)            | No                     |
+| Distance           | `"distance"`       | O(1)             | O(L)            | No                     |
+| DFS                | `"dfs"`            | O(3^d × L)       | O(3^d × L)      | Unlikely               |
+| BFS                | `"bfs"`            | O(N × L)         | O(N × L)        | Unlikely               |
+| IDDFS              | `"iddfs"`          | O(N × L)         | O(N × L)        | Unlikely               |
+| Bidirectional BFS  | `"bidirectional"`  | O(4^(d/2))       | O(4^(d/2))      | Unlikely               |
+| Hamiltonian        | `"hamiltonian"`    | O(1)             | O(N)            | **Yes**                |
 
 *N = total grid cells (W × H), L = current snake length, d = depth of the path found.*
 
@@ -49,6 +51,24 @@ Explores the game-state space level by level using a FIFO queue of full snake sn
 - **Time:** O(N × L) per food — visits at most N distinct states, each costing O(L) to copy.
 - **Space:** O(N × L) — the queue holds all frontier states simultaneously, much heavier than DFS.
 - **Completes the game? Unlikely.** Shortest path to each food is better than DFS's arbitrary path, but like DFS it makes no guarantee about the state left behind after eating. The snake can still paint itself into a corner.
+
+### IDDFS (`"iddfs"`)
+
+Runs depth-limited DFS repeatedly with increasing depth limits (1, 2, 3, …) until the food is found. Finds the shortest path like BFS. A transposition table records each state's best-seen remaining depth budget, so a state is only re-explored when visited with strictly more depth available than before. This eliminates the exponential re-exploration of naive IDDFS, bounding each iteration to O(N) unique state visits.
+
+- **Time:** O(N × L) per food — a transposition table records each state's best remaining depth, bounding unique state visits to N per depth iteration. Total work is O(d × N × L) but amortized to O(N × L) since each state is visited at most once across all iterations.
+- **Space:** O(N × L) — the transposition table grows to at most N entries, each holding an O(L) state key.
+- **Completes the game? Unlikely.** Like DFS and BFS, it finds the shortest path to each food but doesn't plan for survival afterward.
+
+### Bidirectional BFS (`"bidirectional"`)
+
+Runs two BFS searches simultaneously — forward from the snake's head and backward from the food — stopping when their frontiers overlap. The meeting point is at roughly d/2 steps from each end, reducing the search radius dramatically.
+
+The forward frontier avoids the snake's current body. The backward frontier explores grid positions only (no body tracking), since reverse snake-move reconstruction is non-trivial. The two halves of the path are joined at the meeting point.
+
+- **Time:** O(4^(d/2)) per food — each frontier expands to depth d/2, vs O(N × L) for full-state BFS.
+- **Space:** O(4^(d/2)) — both frontiers combined, no per-node snake-state copies.
+- **Completes the game? Unlikely.** The backward portion of the combined path does not account for the snake's body at each step, so the snake may occasionally navigate into its own body on longer snakes. Short-path cases are reliably correct.
 
 ### Hamiltonian (`"hamiltonian"`)
 
@@ -147,4 +167,4 @@ Edit `snakebot/constants.py` to change game settings:
 | `HEIGHT`     | 800        | Window height in pixels                             |
 | `GRID_SIZE`  | 20         | Cell size in pixels                                 |
 | `GAME_SPEED` | 100        | Ticks per second                                    |
-| `STRATEGY`   | `"dfs"`    | Pathfinding algorithm: `"dfs"`, `"bfs"`, `"distance"`, `"greedy"`, `"hamiltonian"` |
+| `STRATEGY`   | `"dfs"`    | Pathfinding algorithm: `"dfs"`, `"bfs"`, `"iddfs"`, `"bidirectional"`, `"distance"`, `"greedy"`, `"hamiltonian"` |

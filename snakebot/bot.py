@@ -1,5 +1,6 @@
 import math
 import copy
+import heapq
 from collections import deque
 
 from snakebot.structures.exploration_node import ExplorationNode
@@ -24,10 +25,14 @@ class SnakeBot:
             return self.decide_iddfs(snake, food, render_callback)
         elif STRATEGY == "bidirectional":
             return self.decide_bidirectional_bfs(snake, food, render_callback)
+        elif STRATEGY == "astar":
+            return self.decide_astar(snake, food, render_callback)
+        elif STRATEGY == "dstar":
+            return self.decide_dstar(snake, food, render_callback)
         elif STRATEGY == "hamiltonian":
             return [self.decide_hamiltonian(snake)]
         else:
-            raise ValueError(f"Unknown strategy: '{STRATEGY}'. Valid options: 'dfs', 'bfs', 'iddfs', 'bidirectional', 'distance', 'greedy', 'hamiltonian'")
+            raise ValueError(f"Unknown strategy: '{STRATEGY}'. Valid options: 'dfs', 'bfs', 'iddfs', 'bidirectional', 'astar', 'dstar', 'distance', 'greedy', 'hamiltonian'")
 
     def decide_dfs(self, snake, food, render_callback=None):
         stack = UniqueStack(ExplorationNode(snake))
@@ -223,6 +228,154 @@ class SnakeBot:
             return [self.decide_by_side(snake, food)]
 
         return list(reversed(full_path))
+
+    def decide_astar(self, snake, food, render_callback=None):
+        start_node = ExplorationNode(snake)
+        start_key = tuple(snake.segments)
+        h = _manhattan_distance(snake.head(), food)
+
+        counter = 0
+        open_heap = [(h, counter, 0, start_node)]
+        best_g = {start_key: 0}
+
+        while open_heap:
+            f, _, g, node = heapq.heappop(open_heap)
+
+            if render_callback:
+                render_callback(node.snake)
+
+            key = tuple(node.snake.segments)
+            if best_g.get(key, float('inf')) < g:
+                continue
+
+            if is_game_over(node.snake):
+                continue
+
+            if will_snake_eat_the_food(node.snake, food):
+                path = []
+                current = node
+                while current.parent:
+                    path.append(current.snake.direction)
+                    current = current.parent
+                if not path:
+                    path.append(self.decide_by_side(node.snake, food))
+                return path
+
+            node.explore()
+
+            for direction in DIRECTIONS:
+                new_snake = copy.deepcopy(node.snake)
+                new_snake.direction = direction
+                new_snake.move()
+                new_key = tuple(new_snake.segments)
+                new_g = g + 1
+
+                if new_g < best_g.get(new_key, float('inf')):
+                    best_g[new_key] = new_g
+                    new_h = _manhattan_distance(new_snake.head(), food)
+                    counter += 1
+                    new_node = ExplorationNode(new_snake, node)
+                    heapq.heappush(open_heap, (new_g + new_h, counter, new_g, new_node))
+
+        return [snake.direction]
+
+    def decide_dstar(self, snake, food, render_callback=None):
+        head = snake.head()
+        if head == food:
+            return [self.decide_by_side(snake, food)]
+
+        # Exclude head (search origin). Exclude tail only when it will vacate;
+        # when eaten=True the snake grows and the tail stays this move.
+        body_obstacle = set(snake.segments[1:] if snake.eaten else snake.segments[1:-1])
+        INF = float('inf')
+
+        g = {}
+        rhs = {food: 0}
+
+        def get_g(s): return g.get(s, INF)
+        def get_rhs(s): return rhs.get(s, INF)
+        def h(s): return _manhattan_distance(s, head)
+        def calc_key(s):
+            m = min(get_g(s), get_rhs(s))
+            return (m + h(s), m)
+
+        def passable(pos):
+            return (0 <= pos[0] < GRID_WIDTH
+                    and 0 <= pos[1] < GRID_HEIGHT
+                    and pos not in body_obstacle)
+
+        def neighbors(s):
+            for dx, dy in DIRECTIONS:
+                nxt = (s[0] + dx, s[1] + dy)
+                if passable(nxt):
+                    yield nxt
+
+        counter = 0
+        heap = []
+        in_heap = {}
+
+        def push(s):
+            nonlocal counter
+            k = calc_key(s)
+            counter += 1
+            heapq.heappush(heap, (k, counter, s))
+            in_heap[s] = k
+
+        def update_vertex(u):
+            if u != food:
+                rhs[u] = min((get_g(nb) + 1 for nb in neighbors(u)), default=INF)
+            if get_g(u) != get_rhs(u):
+                push(u)
+
+        push(food)
+
+        while heap:
+            # Discard stale entries (superseded by a later push with a different key).
+            while heap and in_heap.get(heap[0][2]) != heap[0][0]:
+                heapq.heappop(heap)
+            if not heap:
+                break
+
+            k, _, u = heap[0]
+
+            if k >= calc_key(head) and get_rhs(head) == get_g(head):
+                break
+
+            heapq.heappop(heap)
+            del in_heap[u]
+
+            if render_callback:
+                ghost = copy.deepcopy(snake)
+                ghost.segments = [u]
+                render_callback(ghost)
+
+            if get_g(u) > get_rhs(u):
+                g[u] = get_rhs(u)
+                for nb in neighbors(u):
+                    update_vertex(nb)
+            else:
+                g[u] = INF
+                update_vertex(u)
+                for nb in neighbors(u):
+                    update_vertex(nb)
+
+        if get_g(head) >= INF:
+            return [self.decide_by_side(snake, food)]
+
+        # Return only the first step. The g-value map is computed against the
+        # current static body, but the body shifts every move, so a multi-step
+        # path would cross cells that become occupied on later ticks.
+        # Returning one step forces a fresh replan each move with the updated body.
+        best = min(
+            (nxt for dx, dy in DIRECTIONS
+             for nxt in [(head[0] + dx, head[1] + dy)]
+             if passable(nxt)),
+            key=get_g,
+            default=None
+        )
+        if best is None:
+            return [self.decide_by_side(snake, food)]
+        return [(best[0] - head[0], best[1] - head[1])]
 
     def decide_hamiltonian(self, snake):
         head = snake.head()

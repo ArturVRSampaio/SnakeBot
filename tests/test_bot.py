@@ -54,6 +54,18 @@ class TestDecide:
         assert isinstance(result, list)
         assert len(result) > 0
 
+    def test_astar_strategy_returns_list(self):
+        with patch("snakebot.bot.STRATEGY", "astar"):
+            result = self.bot.decide(self.snake, self.food)
+        assert isinstance(result, list)
+        assert len(result) > 0
+
+    def test_dstar_strategy_returns_list(self):
+        with patch("snakebot.bot.STRATEGY", "dstar"):
+            result = self.bot.decide(self.snake, self.food)
+        assert isinstance(result, list)
+        assert len(result) > 0
+
     def test_hamiltonian_strategy_returns_list(self):
         with patch("snakebot.bot.STRATEGY", "hamiltonian"):
             result = self.bot.decide(self.snake, self.food)
@@ -413,3 +425,121 @@ class TestDecideBidirectionalBFS:
             _snake_at(10, 10), (15, 10), render_callback=lambda s: calls.append(s)
         )
         assert len(calls) > 0
+
+    def test_returns_fallback_when_no_path_exists(self):
+        # Head at corner (0,0) with body blocking both exits — forward queue drains
+        snake = Snake()
+        snake.segments = [(0, 0), (1, 0), (0, 1), (2, 0)]
+        path = self.bot.decide_bidirectional_bfs(snake, (10, 10))
+        assert isinstance(path, list)
+        assert len(path) > 0
+
+
+class TestDecideAstar:
+    def setup_method(self):
+        self.bot = SnakeBot()
+
+    def test_returns_list(self):
+        path = self.bot.decide_astar(_snake_at(10, 10), (15, 10))
+        assert isinstance(path, list)
+        assert len(path) > 0
+
+    def test_finds_adjacent_food_right(self):
+        assert self.bot.decide_astar(_snake_at(10, 10), (11, 10)) == [RIGHT]
+
+    def test_finds_adjacent_food_down(self):
+        assert self.bot.decide_astar(_snake_at(10, 10), (10, 11)) == [DOWN]
+
+    def test_finds_shortest_path(self):
+        path = self.bot.decide_astar(_snake_at(10, 10), (13, 10))
+        assert len(path) == 3
+
+    def test_path_leads_to_food(self):
+        snake = _snake_at(10, 10)
+        food = (13, 12)
+        path = self.bot.decide_astar(snake, food)
+        for direction in reversed(path):
+            snake.direction = direction
+            snake.move()
+        assert will_snake_eat_the_food(snake, food)
+
+    def test_finds_optimal_path_length(self):
+        snake = _snake_at(5, 5)
+        food = (10, 10)
+        path = self.bot.decide_astar(snake, food)
+        assert len(path) == 10
+
+    def test_head_already_at_food_uses_decide_by_side_fallback(self):
+        path = self.bot.decide_astar(_snake_at(10, 10), (10, 10))
+        assert len(path) == 1
+        assert path[0] in [UP, DOWN, LEFT, RIGHT]
+
+    def test_render_callback_is_called(self):
+        calls = []
+        self.bot.decide_astar(
+            _snake_at(10, 10), (15, 10), render_callback=lambda s: calls.append(s)
+        )
+        assert len(calls) > 0
+
+    def test_returns_fallback_when_no_path_exists(self):
+        # All four moves from corner (0,0) lead to game-over (OOB or self-collision).
+        # Covers the is_game_over skip and the no-path fallback return.
+        snake = Snake()
+        snake.segments = [(0, 0), (1, 0), (0, 1), (2, 0)]
+        path = self.bot.decide_astar(snake, (10, 10))
+        assert isinstance(path, list)
+        assert len(path) > 0
+
+
+class TestDecideDstar:
+    def setup_method(self):
+        self.bot = SnakeBot()
+
+    def test_returns_list(self):
+        path = self.bot.decide_dstar(_snake_at(10, 10), (15, 10))
+        assert isinstance(path, list)
+        assert len(path) > 0
+
+    def test_finds_adjacent_food_right(self):
+        assert self.bot.decide_dstar(_snake_at(10, 10), (11, 10)) == [RIGHT]
+
+    def test_finds_adjacent_food_down(self):
+        assert self.bot.decide_dstar(_snake_at(10, 10), (10, 11)) == [DOWN]
+
+    def test_returns_single_step(self):
+        path = self.bot.decide_dstar(_snake_at(10, 10), (13, 10))
+        assert len(path) == 1
+
+    def test_navigates_to_food_step_by_step(self):
+        snake = _snake_at(10, 10)
+        food = (13, 12)
+        for _ in range(20):
+            path = self.bot.decide_dstar(snake, food)
+            assert len(path) == 1
+            snake.direction = path[0]
+            snake.move()
+            if will_snake_eat_the_food(snake, food):
+                break
+        assert will_snake_eat_the_food(snake, food)
+
+    def test_head_already_at_food_uses_decide_by_side_fallback(self):
+        path = self.bot.decide_dstar(_snake_at(10, 10), (10, 10))
+        assert len(path) == 1
+        assert path[0] in [UP, DOWN, LEFT, RIGHT]
+
+    def test_render_callback_is_called(self):
+        calls = []
+        self.bot.decide_dstar(
+            _snake_at(10, 10), (15, 10), render_callback=lambda s: calls.append(s)
+        )
+        assert len(calls) > 0
+
+    def test_returns_fallback_when_no_path_exists(self):
+        # Head at corner (0,0) with body blocking both passable neighbors.
+        # D* exhausts the reachable grid, drains stale heap entries (line 336),
+        # then returns fallback because g[head] stays INF (line 362).
+        snake = Snake()
+        snake.segments = [(0, 0), (1, 0), (0, 1), (2, 0)]
+        path = self.bot.decide_dstar(snake, (10, 10))
+        assert isinstance(path, list)
+        assert len(path) > 0

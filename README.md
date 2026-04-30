@@ -18,6 +18,8 @@ The active strategy is set via the `STRATEGY` constant in `snakebot/constants.py
 | BFS                | `"bfs"`            | O(N × L)         | O(N × L)        | Unlikely               |
 | IDDFS              | `"iddfs"`          | O(N × L)         | O(N × L)        | Unlikely               |
 | Bidirectional BFS  | `"bidirectional"`  | O(4^(d/2))       | O(4^(d/2))      | Unlikely               |
+| A\*                | `"astar"`          | O(N × L × log N) | O(N × L)        | Unlikely               |
+| D\* Lite           | `"dstar"`          | O(N × log N)     | O(N)            | Unlikely               |
 | Hamiltonian        | `"hamiltonian"`    | O(1)             | O(N)            | **Yes**                |
 
 *N = total grid cells (W × H), L = current snake length, d = depth of the path found.*
@@ -69,6 +71,26 @@ The forward frontier avoids the snake's current body. The backward frontier expl
 - **Time:** O(4^(d/2)) per food — each frontier expands to depth d/2, vs O(N × L) for full-state BFS.
 - **Space:** O(4^(d/2)) — both frontiers combined, no per-node snake-state copies.
 - **Completes the game? Unlikely.** The backward portion of the combined path does not account for the snake's body at each step, so the snake may occasionally navigate into its own body on longer snakes. Short-path cases are reliably correct.
+
+### A\* (`"astar"`)
+
+Explores the game-state space using a min-heap ordered by f(n) = g(n) + h(n), where g is the number of steps taken so far and h is the Manhattan distance from the current head to the food. A `best_g` dict tracks the lowest cost at which each state has been reached, so states are only re-expanded when a cheaper path is found. With an admissible, consistent heuristic like Manhattan distance, A\* is guaranteed to find the shortest path.
+
+- **Time:** O(N × L × log N) per food — up to N states expanded, each costing O(L) to copy and O(log N) for the heap operation.
+- **Space:** O(N × L) — the heap and `best_g` dict together hold at most N states, each an O(L) snake copy.
+- **Completes the game? Unlikely.** Finds the shortest path to each food but, like BFS, makes no guarantee about the survivability of the state left behind after eating.
+
+### D\* Lite (`"dstar"`)
+
+Runs a backward search from the food (goal) to the snake's head (start), computing a g-value — the shortest-path cost to the food — for every reachable grid position. The search uses a priority queue keyed on `(min(g, rhs) + h, min(g, rhs))`, where `rhs` is the one-step lookahead value and `h` is the Manhattan distance to the head. Once the head is locally consistent (g = rhs), the path is reconstructed by greedily following the minimum g-value neighbour from head to food.
+
+Because the search operates on grid positions rather than full snake states, there are no O(L) snake copies: each node is a single `(x, y)` tuple, making each expansion O(1).
+
+The key advantage over A\* is replanning: if a body segment shifts and blocks the planned path mid-execution, only the g-values of affected cells need to be updated rather than restarting from scratch. This implementation performs the initial computation; full incremental replanning would require integrating D\* into the per-step game loop.
+
+- **Time:** O(N × log N) per food — N grid positions, O(log N) per heap operation, no per-node snake copies.
+- **Space:** O(N) — g/rhs dicts and heap, one entry per grid cell.
+- **Completes the game? Unlikely.** Finds the shortest path to food but, like A\*, makes no guarantee about the survivability of the resulting state.
 
 ### Hamiltonian (`"hamiltonian"`)
 
@@ -167,4 +189,4 @@ Edit `snakebot/constants.py` to change game settings:
 | `HEIGHT`     | 800        | Window height in pixels                             |
 | `GRID_SIZE`  | 20         | Cell size in pixels                                 |
 | `GAME_SPEED` | 100        | Ticks per second                                    |
-| `STRATEGY`   | `"dfs"`    | Pathfinding algorithm: `"dfs"`, `"bfs"`, `"iddfs"`, `"bidirectional"`, `"distance"`, `"greedy"`, `"hamiltonian"` |
+| `STRATEGY`   | `"dfs"`    | Pathfinding algorithm: `"dfs"`, `"bfs"`, `"iddfs"`, `"bidirectional"`, `"astar"`, `"dstar"`, `"distance"`, `"greedy"`, `"hamiltonian"` |
